@@ -12,30 +12,35 @@ def query_svg(svgfile):
         split = line.split(',')
         yield dict(zip(fields, [split[0]] + [float(x) for x in split[1:]]))
 
-lines = list(query_svg("whatever_page001.svg"))
+def do_crop(svgfile, outfile):
+    querylines = list(query_svg(svgfile))
 
-minX = lines[0]["width"]
-minY = lines[0]["height"]
-maxX = 0
-maxY = 0
+    page = querylines[0] # root element
+    minX = page["width"]
+    minY = page["height"]
+    maxX = 0
+    maxY = 0
 
-for line in lines[1:]:
-    if (line["width"] < lines[0]["width"]
-        and line["height"] < lines[0]["height"]):
-        minX = min(minX, line["x"])
-        minY = min(minY, line["y"])
-        maxX = max(maxX, line["x"] + line["width"])
-        maxY = max(maxY, line["y"] + line["height"])
+    for line in querylines[1:]:
+        if (line["width"] < page["width"]
+            and line["height"] < page["height"]):
+            minX = min(minX, line["x"])
+            minY = min(minY, line["y"])
+            maxX = max(maxX, line["x"] + line["width"])
+            maxY = max(maxY, line["y"] + line["height"])
 
-print(minX, minY, maxX-minX, maxY-minY)
+    print(minX, minY, maxX-minX, maxY-minY)
 
-lines = []
-with open("whatever_page001.svg") as f:
-    lines = f.readlines()
+    lines = []
+    with open(svgfile) as f:
+        lines = f.readlines()
 
-lines[0] = re.sub("width='[^']*' height='[^']*'",
-                  f"width='{maxX-minX}px' height='{maxY-minY}px' " +
-                  f"viewBox='{minX} {minY} {maxX-minX} {maxY-minY}'", lines[0])
+    lines[0] = re.sub("width='[^']*' height='[^']*'",
+                      f"width='{maxX-minX}px' height='{maxY-minY}px' " +
+                      f"viewBox='{minX} {minY} {maxX-minX} {maxY-minY}'",
+                      lines[0])
 
-with open("out.svg", "w") as f:
-    f.writelines(lines)
+    with open(outfile, "w") as f:
+        f.writelines(lines)
+
+do_crop("/home/adam/scratch/whatever_page001.svg", "out.svg")
