@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
 import subprocess
 import re
 
 # partially based on code from https://github.com/skagedal/svgclip/blob/master/svgclip.py
+import sys
 
 def query_svg(svgfile):
     """Parses the output from inkscape --query-all"""
@@ -46,4 +48,10 @@ def do_crop(svgfile, outfile, margin):
     with open(outfile, "w") as f:
         f.writelines(lines)
 
-do_crop("/home/adam/scratch/whatever_page001.svg", "out.svg")
+if __name__ == '__main__':
+    if len(sys.argv) < 3:
+        exit("Not enough args!\n" +
+             "Usage: " + sys.argv[0] + " <input.svg> <output.svg> [margin]")
+
+    margin = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+    do_crop(sys.argv[1], sys.argv[2], margin)
