@@ -12,7 +12,7 @@ def query_svg(svgfile):
         split = line.split(',')
         yield dict(zip(fields, [split[0]] + [float(x) for x in split[1:]]))
 
-def do_crop(svgfile, outfile):
+def do_crop(svgfile, outfile, margin):
     querylines = list(query_svg(svgfile))
 
     page = querylines[0] # root element
@@ -29,15 +29,18 @@ def do_crop(svgfile, outfile):
             maxX = max(maxX, line["x"] + line["width"])
             maxY = max(maxY, line["y"] + line["height"])
 
-    print(minX, minY, maxX-minX, maxY-minY)
+    x = max(minX - margin/2, 0)
+    y = max(minY - margin/2, 0)
+    width = min(maxX - minX + margin, page["width"])
+    height = min(maxY - minY + margin, page["height"])
 
     lines = []
     with open(svgfile) as f:
         lines = f.readlines()
 
     lines[0] = re.sub("width='[^']*' height='[^']*'",
-                      f"width='{maxX-minX}px' height='{maxY-minY}px' " +
-                      f"viewBox='{minX} {minY} {maxX-minX} {maxY-minY}'",
+                      f"width='{width}px' height='{height}px' " +
+                      f"viewBox='{x} {y} {width} {height}'",
                       lines[0])
 
     with open(outfile, "w") as f:
