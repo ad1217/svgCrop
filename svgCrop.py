@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
-import subprocess
-import re
 
-# partially based on code from https://github.com/skagedal/svgclip/blob/master/svgclip.py
+import re
+import subprocess
 import sys
 
 def query_svg(svgfile):
-    """Parses the output from inkscape --query-all"""
     fields = ('name', 'x', 'y', 'width', 'height')
 
     output = subprocess.check_output(["inkscape", "--query-all", svgfile])
     for line in output.strip().decode().split('\n'):
-        split = line.split(',')
-        yield dict(zip(fields, [split[0]] + [float(x) for x in split[1:]]))
+        parts = line.split(',')
+        yield dict(zip(fields, [parts[0]] + [float(x) for x in parts[1:]]))
 
 def do_crop(svgfile, outfile, margin):
     querylines = list(query_svg(svgfile))
@@ -24,6 +22,7 @@ def do_crop(svgfile, outfile, margin):
     maxY = 0
 
     for line in querylines[1:]:
+        # bad check to get only actual drawings
         if (line["width"] < page["width"]
             and line["height"] < page["height"]):
             minX = min(minX, line["x"])
